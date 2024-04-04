@@ -1,3 +1,16 @@
+# Github actions Node 20 react app build template
+This is a template repoistory set up that it builds react spa application using github actions on every new release. The build is done on ubuntu-latest runner and uses node 20. The build is done using `npm ci` and `npm run build`. In addition to saving the built output to artifact, 2nd job builds the static html/css/js and pushes it to the nginx container togather with nginx config for spa so that it can be
+hosted using anything that can run a docker container.
+
+## Requirements for docker container build
+You need to have the following secrets set up in your github either on organization or repository level. If you are using repository level secrets with environments, uncomment the `environment` section in the github workflow file and replace it with the name of your environment.
+
+| Secret Name | Description |
+| ----------- | ----------- |
+| DOCKER_LOGIN_SERVER | The server URL of the docker registry.|
+| DOCKER_USERNAME | The username to login to the docker registry.|
+| DOCKER_PASSWORD | The password to login to the docker registry.|
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
