@@ -1,0 +1,26 @@
+name: Build distribution version and save to artifact on push to main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout repository
+      - uses: actions/setup-node@v4
+        name: Setup Node.js
+        with:
+          node-version: "20"
+      - run: npm ci
+        name: Install dependencies
+      - run: npm run build
+        name: Build distribution version
+      - uses: actions/upload-artifact@v2
+        name: Upload artifact
+        with:
+          name: dist
+          path: build
