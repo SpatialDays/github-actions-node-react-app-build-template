@@ -4,25 +4,6 @@ on:
     types: [created]
 
 jobs:
-  build-distribution-version-into-artifact:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        name: Checkout repository
-      - uses: actions/setup-node@v4
-        name: Setup Node.js
-        with:
-          node-version: "20"
-      - run: npm ci
-        name: Install dependencies
-      - run: npm run build
-        name: Build distribution version
-      - uses: actions/upload-artifact@v4
-        name: Upload artifact
-        with:
-          name: dist-${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
-          path: build
-
   build-prod-docker-image:
     runs-on: ubuntu-latest
     steps:

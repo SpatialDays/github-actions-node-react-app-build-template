@@ -1,44 +1,30 @@
-name: Build distribution version on release
+name: Build docker images on release
+
 on:
   release:
     types: [created]
 
 jobs:
-  build-distribution-version-into-artifact:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        name: Checkout repository
-      - uses: actions/setup-node@v4
-        name: Setup Node.js
-        with:
-          node-version: "20"
-      - run: npm ci
-        name: Install dependencies
-      - run: npm run build
-        name: Build distribution version
-      - uses: actions/upload-artifact@v4
-        name: Upload artifact
-        with:
-          name: dist-${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
-          path: build
-
-  build-prod-docker-image:
+  build-staging-docker-image:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      # Log in to the Container registry
       - uses: docker/login-action@v2
         name: Log in to the Container registry
         with:
           registry: ${{ secrets.CEH_DOCKER_LOGIN_SERVER}}
           username: ${{ secrets.CEH_DOCKER_USERNAME }}
           password: ${{ secrets.CEH_DOCKER_PASSWORD }}
+      # Set up Docker Buildx
       - uses: docker/setup-buildx-action@v2
         name: Set up Docker Buildx
         id: buildx
-      - name: Convert repository name to lowercase
+      # Convert repository name to lowercase and set as environment variable
+      - name: Set lowercase repository name
+        id: set-lowercase-repo-name
         run: echo "REPO_NAME_LOWER=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-        id: convert-to-lowercase
+      # Build and push Docker image
       - uses: docker/build-push-action@v4
         name: Build and push Docker image
         with:
@@ -47,4 +33,4 @@ jobs:
           cache-from: type=registry,ref=${{ secrets.CEH_DOCKER_LOGIN_SERVER }}/${{ env.REPO_NAME_LOWER }}:cache
           cache-to: type=registry,ref=${{ secrets.CEH_DOCKER_LOGIN_SERVER }}/${{ env.REPO_NAME_LOWER }}:cache,mode=max
           push: true
-          tags: ${{ secrets.CEH_DOCKER_LOGIN_SERVER }}/${{ env.REPO_NAME_LOWER }}:${{ github.event.release.tag_name }}
+          tags: ${{ secrets.CEH_DOCKER_LOGIN_SERVER }}/${{ env.REPO_NAME_LOWER }}:${{ github.event.release.tag_name }}-staging
