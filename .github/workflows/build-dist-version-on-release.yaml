@@ -20,31 +20,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         name: Upload artifact
         with:
-          name: dist-${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
+          name: build-${{ github.event.repository.name }}-${{ github.event.release.tag_name }}
           path: build
-
-  build-prod-docker-image:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: docker/login-action@v2
-        name: Log in to the Container registry
-        with:
-          registry: ${{ secrets.CEH_DOCKER_LOGIN_SERVER}}
-          username: ${{ secrets.CEH_DOCKER_USERNAME }}
-          password: ${{ secrets.CEH_DOCKER_PASSWORD }}
-      - uses: docker/setup-buildx-action@v2
-        name: Set up Docker Buildx
-        id: buildx
-      - name: Convert repository name to lowercase
-        run: echo "REPO_NAME_LOWER=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-        id: convert-to-lowercase
-      - uses: docker/build-push-action@v4
-        name: Build and push Docker image
-        with:
-          context: .
-          file: Dockerfile
-          cache-from: type=registry,ref=${{ secrets.CEH_DOCKER_LOGIN_SERVER }}/${{ env.REPO_NAME_LOWER }}:cache
-          cache-to: type=registry,ref=${{ secrets.CEH_DOCKER_LOGIN_SERVER }}/${{ env.REPO_NAME_LOWER }}:cache,mode=max
-          push: true
-          tags: ${{ secrets.CEH_DOCKER_LOGIN_SERVER }}/${{ env.REPO_NAME_LOWER }}:${{ github.event.release.tag_name }}
+      - name: Zip dist folder
+        run: zip -r ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip build
+      - name: Upload file to existing release using gh cli
+        run: gh release upload ${{ github.event.release.tag_name }} ${{ github.event.repository.name }}-${{ github.event.release.tag_name }}.zip
