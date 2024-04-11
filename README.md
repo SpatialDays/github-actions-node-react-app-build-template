@@ -2,6 +2,50 @@
 
 This is a template repoistory set up that it builds react spa application using github actions on every new release. The build is done on ubuntu-latest runner and uses node 20. The build is done using `npm ci` and `npm run build`. In addition to saving the built output to artifact, the release is updated with the built output. The built output is saved as a zip file.
 
+![alt text](readme_images/image.png)
+
+Now you can download the built output from the release page and deploy it to your server either manually or using a CI/CD tool. You can also use the github actions in this same repository to deploy the built output to your server.
+
+Example of action that takes the release version, downloads the built output and uploads it to Azure Storage Container is shown below:
+
+```yaml
+name: Deploy selected release to prod environment on demand
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Release tag to deploy"
+        required: true
+        default: "latest"
+
+jobs:
+  deploy-release-to:
+    runs-on: ubuntu-latest
+    environment:
+      name: PROD_ENVIRONMENT
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        name: Checkout repository
+      - name: Download zip from release
+        run: gh release download ${{ github.event.inputs.release_tag }} -p ${{ github.event.repository.name }}-${{ github.event.inputs.release_tag }}.zip
+      - name: Unzip artifact
+        run: unzip ${{ github.event.repository.name }}-${{ github.event.inputs.release_tag }}.zip
+      - name: Show the content of the artifact
+        run: ls -la dist
+      - name: Deploy to prod
+        run: echo "Deploying ${{ github.event.repository.name }}-${{ github.event.inputs.release_tag }} to prod environment"
+      - name: Upload dist folder to azure storage account
+        uses: bacongobbler/azure-blob-storage-upload@main
+        with:
+          connection_string: ${{ secrets.AZURE_STORAGE_ACCOUNT_CONNECTION_STRING }}
+          container_name: $web
+          source_dir: dist
+          overwrite: "true"
+```
+
 The build is currently building one version of the code with no environment variables, but in case you need multiple distibutions with different set of environment variables (i.e. staging backend vs production backend), you can add multiple jobs in the workflow file and use different environments with variables for each job.
 
 # Getting Started with Create React App
