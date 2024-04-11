@@ -1,5 +1,8 @@
 # Github actions Node 20 react app build template
+
 This is a template repoistory set up that it builds react spa application using github actions on every new release. The build is done on ubuntu-latest runner and uses node 20. The build is done using `npm ci` and `npm run build`. In addition to saving the built output to artifact, the release is updated with the built output. The built output is saved as a zip file.
+
+The build is currently building one version of the code with no environment variables, but in case you need multiple distibutions with different set of environment variables (i.e. staging backend vs production backend), you can add multiple jobs in the workflow file and use different environments with variables for each job.
 
 # Getting Started with Create React App
 

@@ -3,9 +3,14 @@ on:
   release:
     types: [created]
 
+permissions:
+  contents: write
+
 jobs:
   build-distribution-version-into-artifact:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         name: Checkout repository
